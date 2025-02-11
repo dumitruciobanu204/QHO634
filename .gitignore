@@ -1,0 +1,4 @@
+backend/node_modules/
+backend/.env
+backend/uploads
+backend/iris-fb074-firebase-adminsdk-fbsvc-a163c5d0d4.json
