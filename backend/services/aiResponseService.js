@@ -8,30 +8,48 @@ import { chatWithPlantAI } from "../services/plantProfileService.js";
  * @param {string|null} season
  * @returns {Promise<string>}
  */
-export async function generateAIResponse(chatDoc, userMessage, weatherForecast, season) {
-    // console.log("[DEBUG]: Generating response for chat document:", chatDoc);
 
+export async function generateAIResponse(chatDoc, userMessage, weatherForecast, season) {
     const previousMessages = chatDoc?.messages || [];
     const identifiedPlant = chatDoc?.identifiedPlants?.[0] || null;
+    const lastBotMessage = previousMessages
+        .filter(msg => msg.role === "assistant")
+        .pop()?.content || "";
 
-    let prompt = `You are an AI plant care assistant. Use the provided context to generate a concise, natural, and context-aware response.
+    // Simple greetings or nonsensical messages should return a natural response
+    const greetings = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening"];
+    const isGreeting = greetings.includes(userMessage.toLowerCase().trim());
+
+    if (isGreeting) {
+        return "Hello! How can I assist you with your plant care today?";
+    }
+
+    let prompt = `You are an AI plant care assistant with expert-level knowledge of botany and environmental science. Your goal is to provide clear, real-time, and **fully adaptive** plant care advice that integrates:
+
 ### Data Context:
-1. **Conversation History**: You have access to the user's previous messages and assistant responses.
-2. **Plant Information**: If a plant has been identified, include its name, health status, and relevant care advice.
-3. **Weather Data**: If available, integrate weather conditions into your care recommendations.
-4. **Seasonal Context**: Tailor advice to the current season to match the plant's lifecycle.
+1. **Conversation History**: Ensure responses flow naturally and avoid repeating previous details.
+2. **Plant Information**: If a plant is identified, provide targeted care recommendations.
+3. **Weather & Environmental Factors**: Use all available data to enhance care recommendations, but only when relevant.
+4. **Seasonal Adjustments**: Ensure advice aligns with the plant’s natural growth cycle.
 
-### Instructions:
-- Format responses as natural, flowing paragraphs rather than using bullet points.
-- Avoid repeating previous details unless clarification is necessary.
-- Provide relevant, concise advice based on the plant’s needs and current weather conditions.
-- End with an engaging follow-up question or an offer to assist further.
+### Key Guidelines:
+- Ensure responses are **fluid, confident, and prescriptive**, rather than speculative.
+- Avoid redundancy by considering previous AI responses and only introducing new insights.
+- Provide **engaging and structured** responses while keeping them practical.
+- If the user input is general (e.g., "hi", "hello"), respond naturally without forcing plant care advice.
 
 ### Conversation History:
 ${previousMessages.map(msg => `${msg.role}: ${msg.content}`).join("\n")}
 
-### Task:
-Respond to the latest user input (${userMessage}) by referencing the context above.`;
+### User Input:
+"${userMessage}"
+
+### Response Task:
+- Generate a well-structured natural paragraph rather than using section headers (e.g., **Light Exposure**, **General Care Tips**). 
+- Integrate all weather, seasonal, and plant-specific factors into **one fluid response**.
+- Ensure **smooth transitions** between care recommendations instead of using bullet points or headings.
+- The response should feel **conversational, clear, and informative**, just like a professional plant expert would explain it.
+`;
 
     if (identifiedPlant) {
         const plantName = identifiedPlant.plantName || "the plant";
@@ -40,73 +58,131 @@ Respond to the latest user input (${userMessage}) by referencing the context abo
             .map(assessment => assessment.name)
             .join(" and ");
 
-        prompt += `
+        if (!lastBotMessage.includes(plantName) || !lastBotMessage.includes(healthSummary)) {
+            prompt += `
 
-The user has identified their plant as ${plantName}. It is showing signs of ${healthSummary}, which are common during this stage. Provide a natural, flowing explanation of the plant's current state, mentioning whether this condition is normal or if specific action is needed. Include care recommendations based on the plant's lifecycle, weather conditions, and season, ensuring clarity and conciseness.`;
+The user has identified their plant as ${plantName}. The plant is currently exhibiting signs of ${healthSummary}. Provide a precise, **weather-informed** care strategy that considers seasonal factors, upcoming temperature shifts, humidity fluctuations, and light exposure.`;
+        }
     }
 
-    if (weatherForecast) {
-        prompt += `
+    if (weatherForecast && !isGreeting) {
+        const weatherDetails = weatherForecast.map(day => {
+            return `${day.date}: ${day.temperature}°C, ${day.condition}, humidity at ${day.humidity}%, cloud cover ${day.cloudPercentage}%, wind ${day.windSpeed} km/h.`;
+        }).slice(0, 3).join(" ");
 
-The upcoming weather forecast includes ${weatherForecast
-            .map(day => `${day.date} with ${day.condition} and ${day.temperature}°C`)
-            .slice(0, 3)
-            .join(", ")}. Ensure the response accounts for temperature, humidity, and light levels in plant care recommendations.`;
+        if (!lastBotMessage.includes(weatherDetails)) {
+            prompt += `
+
+The upcoming weather forecast includes ${weatherDetails}. **Use this data to refine watering schedules, humidity control, light exposure, and general plant care recommendations dynamically.** Ensure that these environmental insights are directly integrated into practical advice rather than being listed separately.`;
+        }
     }
 
     if (season) {
-        prompt += `
-
-The current season is ${season}, which may influence plant growth and care requirements. Tailor your response to reflect seasonal adjustments in watering, fertilizing, and light exposure.`;
+        if (!lastBotMessage.includes(season)) {
+            prompt += `
+    
+    The current season is **${season}**. This means:
+    - Plants may be in a dormancy period (depending on species).
+    - Growth rates could be slower.
+    - Light levels may be lower due to seasonal changes.
+    - Indoor plants may require additional humidity and protection from cold drafts.
+    - Outdoor plants may need winter protection, depending on their hardiness.
+    
+    Adjust all plant care strategies accordingly, ensuring recommendations align with **winter-specific challenges**.`;
+        }    
     }
-
-    // console.log("[DEBUG]: Final Prompt Sent to AI:\n", prompt);
 
     try {
         return await gptQuery(prompt);
     } catch (error) {
-        // console.error(`[ERROR]: AI response generation failed - ${error.message}`);
         throw new Error("Failed to generate AI response.");
     }
 }
 
-
 export async function generatePlantProfileAIResponse(plantData, userMessage, weatherForecast = null, season = null) {
-    let prompt = `You are a dedicated AI assistant for a user's specific plant. You will only respond about this plant, using the data provided below.`;
+    const plantName = plantData.plantName?.toLowerCase().trim() || "this plant";
+    const previousMessages = Array.isArray(plantData.messages) ? plantData.messages : [];
+    const lastBotMessage = previousMessages
+        .filter(msg => msg.role === "assistant")
+        .pop()?.content || "";
+        const userMessageLower = userMessage.toLowerCase();
+        const plantNameLower = plantName.toLowerCase();
 
-    if (plantData) {
-        prompt += `
-        The user is asking about their plant: **${plantData.plantName}**.
+        const lastBotMessages = previousMessages
+            .filter(msg => msg.role === "assistant")
+            .slice(-3)
+            .map(msg => msg.content.toLowerCase());
 
-        Details about this plant:
-        - Preferences: ${plantData.preferences || "No specific preferences provided."}
-        - Weather Alerts Enabled: ${plantData.weatherAlerts ? "Yes" : "No"}
+        const previouslyDiscussedTopics = new Set();
+        lastBotMessages.forEach(message => {
+            if (message.includes("watering")) previouslyDiscussedTopics.add("watering");
+            if (message.includes("humidity")) previouslyDiscussedTopics.add("humidity");
+            if (message.includes("temperature")) previouslyDiscussedTopics.add("temperature");
+            if (message.includes("light")) previouslyDiscussedTopics.add("light");
+            if (message.includes("fertilizer")) previouslyDiscussedTopics.add("fertilizer");
+            if (message.includes("repotting")) previouslyDiscussedTopics.add("repotting");
+        });
 
-        **Important:** Your response should **only** be about this plant. Do not provide information about any other plant types.`;
+        const generalCareQuestions = [
+            "how do i take care of my plant",
+            "what should i do",
+            "how do i fix this",
+            "help",
+            "advice",
+            "care tips",
+            "what do i do",
+        ];
+
+        const isGeneralPlantQuestion = generalCareQuestions.some(q => userMessageLower.includes(q));
+
+        if (!userMessageLower.includes(plantNameLower) && !isGeneralPlantQuestion) {
+            return `I can only provide care advice for **${plantName}**. If you need guidance on another plant, please create a separate plant profile.`;
+        }
+
+        let prompt = `You are an AI plant care assistant with expert-level knowledge of botany and environmental science. You will **only** provide advice for the user's plant: **${plantName}**.
+
+        ### **Data Context:**
+        1. **Avoid Repetition**: Ensure each response introduces new insights instead of repeating previous details.
+        2. **Weather & Environmental Factors**: Always include relevant weather conditions in advice dynamically.
+        3. **Seasonal Adjustments**: Adapt care recommendations to match seasonal cycles.
+
+        ### **User Input:**
+        "${userMessage}"
+
+        ### **Response Task:**
+        - **Avoid redundant phrasing** (e.g., if watering was already discussed, focus on new care aspects).
+        - **Include the latest weather conditions** dynamically.
+        - **Make smooth transitions between care advice topics.**
+        - **If previous messages already addressed a point, provide new insights instead of repeating.**`;
 
         if (weatherForecast) {
-            prompt += `
+            const weatherDetails = weatherForecast.map(day => {
+                return `${day.date}: ${day.temperature}°C, ${day.condition}, humidity at ${day.humidity}%, wind ${day.windSpeed} km/h.`;
+            }).slice(0, 3).join(" ");
 
-            The current weather forecast for the plant’s location includes:
-            ${weatherForecast.map(day => `${day.date} - ${day.condition}, ${day.temperature}°C`).join("\n")}
-            
-            Adjust care recommendations accordingly.`;
+            if (!lastBotMessages.some(msg => msg.includes(weatherDetails))) {
+                prompt += `
+
+        The upcoming weather forecast includes **${weatherDetails}**. Adjust care strategies accordingly, focusing on **watering schedules, humidity levels, and temperature shifts**.`;
+            }
         }
 
-        if (season) {
+        const possibleTopics = ["watering", "humidity", "temperature", "light", "fertilizer", "repotting"];
+        const newTopics = possibleTopics.filter(topic => !previouslyDiscussedTopics.has(topic));
+
+        if (newTopics.length > 0) {
+            const topicToIntroduce = newTopics[0];
             prompt += `
-            The current season is ${season}. Make sure recommendations are **season-appropriate**.`;
+
+        Since we haven’t covered **${topicToIntroduce}** yet, let's focus on that. Provide detailed advice about how **${topicToIntroduce}** affects ${plantName} and the best practices to optimize plant health.`;
         }
-    }
 
-    prompt += `
+        try {
+            return await gptQuery(prompt);
+        } catch (error) {
+            throw new Error("Failed to generate plant-specific AI response.");
+        }
 
-    **User's Question:** "${userMessage}"
-    Provide an expert, structured response that is clear and strictly relevant to this plant.`;
 
-    try {
-        return await gptQuery(prompt);
-    } catch (error) {
-        throw new Error("Failed to generate plant-specific AI response.");
-    }
+
 }

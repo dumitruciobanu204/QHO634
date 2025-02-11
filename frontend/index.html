@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iris</title>
+    <link rel="stylesheet" href="css/chat.css">
+    <link rel="stylesheet" href="css/profiles.css">
+</head>
+<body>
+    <div class="main-container">
+        <div id="plantProfileContainer">
+            <button id="createProfileButton">Create Plant Profile</button>
+            <div id="plantProfilesContainer"></div>
+        </div>
+
+        <div id="chatContainer">
+            <div class="chat-messages" id="chatMessages"></div>
+            <form id="chatForm">
+                <label for="imageInput" id="attachmentIcon" class="control-icon" title="Attach an image">📎</label>
+                <input type="file" id="imageInput" accept="image/*" hidden>
+                <input type="text" id="messageInput" placeholder="Type your message..." required>
+                <button type="submit" id="sendButton">Send</button>
+            </form>
+        </div>        
+    </div>
+
+    <div id="plantProfileModal">
+        <div class="plant-profile-modal-content">
+            <span id="closePlantProfileModal" class="plant-profile-close">&times;</span>
+            <h2>Create Plant Profile</h2>
+            <form id="plantProfileForm">
+                <label for="plantName">Plant Name:</label>
+                <input type="text" id="plantName" name="plantName" required placeholder="Enter plant name">
+                
+                <label for="plantImage">Upload Initial Picture:</label>
+                <input type="file" id="plantImage" name="plantImage" accept="image/*">
+                
+                <label for="preferences">Preferences (Optional):</label>
+                <textarea id="preferences" name="preferences" placeholder="Enter any special preferences..."></textarea>
+                
+                <div class="plant-profile-checkbox">
+                    <label for="weatherAlerts">Enable Weather Alerts:</label>
+                    <input type="checkbox" id="weatherAlerts" name="weatherAlerts" checked>
+                </div>
+                
+                <button type="submit" id="saveProfileButton">Save Profile</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/location.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/profiles.js"></script>
+    <script src="js/plantProfiles.js"></script>
+</body>
+</html>

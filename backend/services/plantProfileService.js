@@ -31,18 +31,21 @@ export async function saveProfileToFirebase(profileData) {
             "Provide a detailed and personalized plant care guide based on the current weather and conditions."
         );
 
-        // Save to Firestore (Using a messages map)
         const profileRef = await db.collection("plant_profiles").add({
             plantName: plantData.plantName,
             preferences: preferences || "",
             weatherAlerts: weatherAlerts !== undefined ? weatherAlerts : true,
             plantImage,
             createdAt: new Date().toISOString(),
-            messages: {
-                initialAdvice: initialAdvice, // Store AI-generated message inside a map
-            },
-            healthAssessment: plantData.healthAssessment, // ✅ Ensure healthAssessment is saved
-        });
+            messages: [
+                {
+                    role: "assistant",
+                    content: initialAdvice,
+                    timestamp: new Date().toISOString(),
+                }
+            ],
+            healthAssessment: plantData.healthAssessment, 
+        });               
 
         return {
             id: profileRef.id,

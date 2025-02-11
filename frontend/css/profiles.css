@@ -1,0 +1,244 @@
+#plantProfileModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+#plantProfileModal.active {
+    display: flex;
+}
+
+#plantProfileModal .plant-profile-modal-content {
+    background: #ffffff;
+    width: 400px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#plantProfileModal .plant-profile-close {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    font-size: 20px;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+#plantProfileModal .plant-profile-close:hover {
+    color: #333;
+}
+
+#plantProfileModal form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#plantProfileModal label {
+    font-size: 14px;
+    color: #555;
+}
+
+#plantProfileModal input[type="text"],
+#plantProfileModal textarea,
+#plantProfileModal input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    outline: none;
+}
+
+#plantProfileModal textarea {
+    resize: none;
+    height: 80px;
+}
+
+#plantProfileModal .plant-profile-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #555;
+}
+
+#plantProfileModal input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+#plantProfileModal #saveProfileButton {
+    background-color: #4CAF50;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+}
+
+#plantProfileModal #saveProfileButton:hover {
+    background-color: #388E3C;
+}
+
+.plant-profiles-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.plant-profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+    border: 1px solid #ddd;
+    width: 88%;
+    max-width: 350px;
+    text-align: center;
+    margin: 0 auto;
+    position: relative;
+}
+
+.plant-profile-image {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #4CAF50;
+    display: block;
+    margin: 0 auto;
+}
+
+.plant-profile-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.delete-profile-button {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #d9534f;
+    font-weight: bold;
+    transition: color 0.2s ease-in-out;
+}
+
+.delete-profile-button:hover {
+    color: #c9302c;
+}
+
+.plant-profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.toggle-reminders-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    font-size: 14px;
+}
+
+.toggle-reminders-button:hover {
+    background-color: #388E3C;
+}
+
+.reminder-section {
+    margin-top: 10px;
+    width: 100%;
+}
+
+.reminder-dropdown {
+    margin-top: 5px;
+    padding: 12px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    max-height: 150px;
+    overflow-y: auto;
+    width: 92%;
+    text-align: left;
+}
+
+.reminder-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.reminder-item:last-child {
+    border-bottom: none;
+}
+
+.mark-completed-button {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    font-size: 12px;
+}
+
+.mark-completed-button:hover {
+    background-color: #c9302c;
+}
+
+.no-reminders {
+    text-align: center;
+    font-size: 14px;
+    color: #777;
+}
+
+.hidden {
+    display: none;
+}

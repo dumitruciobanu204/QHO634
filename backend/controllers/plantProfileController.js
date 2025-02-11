@@ -51,6 +51,16 @@ export async function getPlantProfile(req, res) {
             return res.status(404).json({ error: "Plant profile not found." });
         }
 
+        if (!Array.isArray(profile.messages) || profile.messages.length === 0) {
+            profile.messages = [
+                {
+                    role: "assistant",
+                    content: profile.initialAdvice || "I’m here to assist you with your plant care!",
+                    timestamp: profile.createdAt || new Date().toISOString(),
+                }
+            ];
+        }
+
         res.status(200).json(profile);
     } catch (error) {
         console.error("[ERROR]: Failed to fetch plant profile", error);
